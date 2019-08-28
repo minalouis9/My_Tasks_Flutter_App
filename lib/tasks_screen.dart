@@ -1,12 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'home_screen.dart';
 import 'newTask_screen.dart';
+import 'doneTask_screen.dart';
+import 'editTask_screen.dart';
 
 class TaskScreen extends StatefulWidget {
   final Color mainBackgroundColor;
@@ -23,7 +24,6 @@ class TaskScreen extends StatefulWidget {
 }
 
 class _TaskScreenState extends State<TaskScreen> {
-
   List<String> _tasksTitles;
   List<String> _tasksDetails;
   List<String> _doneTasks;
@@ -40,7 +40,6 @@ class _TaskScreenState extends State<TaskScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    //SystemChrome.setEnabledSystemUIOverlays([]);
     _isMyTaskScreen = true;
     _isGridView = false;
     _isAnySelected = false;
@@ -61,19 +60,19 @@ class _TaskScreenState extends State<TaskScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _tasksTitles = prefs.getStringList("Titles");
-      if(_tasksTitles == null){
+      if (_tasksTitles == null) {
         _tasksTitles = [];
       }
       _tasksDetails = prefs.getStringList("Details");
-      if(_tasksDetails == null){
+      if (_tasksDetails == null) {
         _tasksDetails = [];
       }
       _doneTasks = prefs.getStringList("Done");
-      if(_doneTasks == null){
+      if (_doneTasks == null) {
         _doneTasks = [];
       }
-      if(_tasksTitles.isNotEmpty){
-        for(var task in _tasksTitles){
+      if (_tasksTitles.isNotEmpty) {
+        for (var task in _tasksTitles) {
           _isSelected.add(false);
           _selectedColor.add(_selectTaskColor());
         }
@@ -122,20 +121,6 @@ class _TaskScreenState extends State<TaskScreen> {
     }
   }
 
-  /*void _addTask() {
-    Color _taskColor = _selectTaskColor();
-    int index = _tasksTitles.length;
-    _isSelected.insert(index, false);
-    _selectedColor.insert(index, _taskColor);
-    _tasksTitles.insert(index, _taskTitle.text);
-    if(_taskDescription.toString()!= null || _taskDescription.toString() != "") {
-      _tasksDetails.insert(index, _taskDescription.text);
-    }
-    _isAddNewTask = false;
-    _isCodeScanned = false;
-    _isDayChosen = false;
-  }*/
-
   void _removeTask(int index) {
     _doneTasks.add(_tasksTitles.elementAt(index));
     _tasksTitles.removeAt(index);
@@ -151,10 +136,9 @@ class _TaskScreenState extends State<TaskScreen> {
     _selectedColor.removeAt(index);
     _isSelected.removeAt(index);
     _isSelected.insert(index, !_selectionState);
-    if(_isSelected.elementAt(index)){
+    if (_isSelected.elementAt(index)) {
       _selectedColor.insert(index, Colors.white);
-    }
-    else{
+    } else {
       _selectedColor.insert(index, _selectTaskColor());
     }
     for (var check in _isSelected) {
@@ -168,10 +152,9 @@ class _TaskScreenState extends State<TaskScreen> {
     } else {
       _isAnySelected = true;
     }
-    if(count > 1){
+    if (count > 1) {
       _isMultipleSelected = true;
-    }
-    else{
+    } else {
       _isMultipleSelected = false;
     }
   }
@@ -184,74 +167,121 @@ class _TaskScreenState extends State<TaskScreen> {
         height: 80.0,
         child: Material(
           color: widget.mainBackgroundColor,
-          child: _isAnySelected ?
-          OutlineButton(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(15.0))),
-            borderSide: BorderSide(
-              color: widget.mainTextColor.withOpacity(0.5),
-              style: BorderStyle.solid,
-              width: 2.0,
-            ),
-            onPressed: null,
-            child: Text(
-              "Add New +",
-              style: TextStyle(
-                  fontSize: 25.0, color: widget.mainTextColor.withOpacity(0.1)),
-            ),
-          )
-              :
-          OutlineButton(
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.all(Radius.circular(15.0))),
-            borderSide: BorderSide(
-              color: widget.mainTextColor.withOpacity(0.5),
-              style: BorderStyle.solid,
-              width: 2.0,
-            ),
-            onPressed: () {
-              Navigator.push(context, NewTaskScreenRoute(widget.mainBackgroundColor, _selectTaskColor(), widget.mainTextColor, widget.mainColor, _tasksTitles, _tasksDetails, _isSelected, _selectedColor));
-              /*setState(() {
-                _isAddNewTask = true;
-              });*/
-            },
-            child: Text(
-              "Add New +",
-              style: TextStyle(
-                  fontSize: 25.0, color: widget.mainTextColor.withOpacity(0.5)),
-            ),
-          ),
+          child: _isAnySelected
+              ? OutlineButton(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(15.0))),
+                  borderSide: BorderSide(
+                    color: widget.mainTextColor.withOpacity(0.5),
+                    style: BorderStyle.solid,
+                    width: 2.0,
+                  ),
+                  onPressed: null,
+                  child: Text(
+                    "Add New +",
+                    style: TextStyle(
+                        fontSize: 25.0,
+                        color: widget.mainTextColor.withOpacity(0.1)),
+                  ),
+                )
+              : OutlineButton(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(15.0))),
+                  borderSide: BorderSide(
+                    color: widget.mainTextColor.withOpacity(0.5),
+                    style: BorderStyle.solid,
+                    width: 2.0,
+                  ),
+                  onPressed: () {
+                    _writeData();
+                    Navigator.push(
+                        context,
+                        NewTaskScreenRoute(
+                            widget.mainBackgroundColor,
+                            _selectTaskColor(),
+                            widget.mainTextColor,
+                            widget.mainColor,
+                            _tasksTitles,
+                            _tasksDetails,
+                            _isSelected,
+                            _selectedColor));
+                  },
+                  child: Text(
+                    "Add New +",
+                    style: TextStyle(
+                        fontSize: 25.0,
+                        color: widget.mainTextColor.withOpacity(0.5)),
+                  ),
+                ),
         ),
       ),
     );
   }
 
-  Widget _buildSelectedOptionsMenu(){
+  Widget _buildSelectedOptionsMenu() {
     return Container(
       padding: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
       width: MediaQuery.of(context).size.width,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          _isMultipleSelected ?
-          SizedBox()
-              :
-          FlatButton(
-            onPressed: null,
-            child: Text("Edit",
-              style: TextStyle(
-                  color: widget.mainTextColor.withOpacity(0.5), fontSize: 20.0),
-            ),
-          ),
-          FlatButton(
-            onPressed: null,
-            child: Text("Delete",
-              style: TextStyle(
-                color: widget.mainTextColor.withOpacity(0.5), fontSize: 20.0),
-            ),
-          ),
-        ],
-      ),
+      child: _isMultipleSelected
+          ? FlatButton(
+              onPressed: (){
+                setState(() {
+                  for(int index = 0; index < _isSelected.length; ++index){
+                    if(_isSelected.elementAt(index) == true){
+                      _tasksTitles.removeAt(index);
+                      _tasksDetails.removeAt(index);
+                      _selectedColor.removeAt(index);
+                      _isSelected.removeAt(index);
+                    }
+                  }
+                });
+              },
+              child: Text(
+                "Delete",
+                style: TextStyle(
+                    color: widget.mainTextColor.withOpacity(0.5),
+                    fontSize: 20.0),
+              ),
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                  FlatButton(
+                    onPressed: () {
+                      for(int index = 0; index < _isSelected.length; ++index){
+                        if(_isSelected.elementAt(index) == true){
+                          Navigator.of(context).push(EditTaskScreenRoute(widget.mainBackgroundColor, _selectTaskColor(), widget.mainTextColor, widget.mainColor, index, _tasksTitles, _tasksDetails));
+                        }
+                      }
+                    },
+                    child: Text(
+                      "Edit",
+                      style: TextStyle(
+                          color: widget.mainTextColor.withOpacity(0.5),
+                          fontSize: 20.0),
+                    ),
+                  ),
+                  FlatButton(
+                    onPressed: (){
+                      setState(() {
+                        for(int index = 0; index < _isSelected.length; ++index){
+                          if(_isSelected.elementAt(index) == true){
+                            _tasksTitles.removeAt(index);
+                            _tasksDetails.removeAt(index);
+                            _selectedColor.removeAt(index);
+                            _isSelected.removeAt(index);
+                          }
+                        }
+                      });
+                    },
+                    child: Text(
+                      "Delete",
+                      style: TextStyle(
+                          color: widget.mainTextColor.withOpacity(0.5),
+                          fontSize: 20.0),
+                    ),
+                  ),
+                ]),
     );
   }
 
@@ -262,9 +292,15 @@ class _TaskScreenState extends State<TaskScreen> {
         onPanUpdate: (details) {
           if (details.delta.dy < 0) {
             //TODO: implement the navigation to the done page
-            setState(() {
-              _isMyTaskScreen = false;
-            });
+            _writeData();
+            Navigator.push(
+                context,
+                doneTaskScreenRoute(
+                    widget.mainBackgroundColor,
+                    widget.mainTextColor,
+                    widget.mainColor,
+                    _selectTaskColor(),
+                    _doneTasks));
           }
         },
         child: Column(
@@ -318,21 +354,22 @@ class _TaskScreenState extends State<TaskScreen> {
                           onPressed: null,
                           child: Text(
                             "Sunday",
-                            style: TextStyle(color: widget.mainTextColor.withOpacity(0.5), fontSize: 17.5),
+                            style: TextStyle(
+                                color: widget.mainTextColor.withOpacity(0.5),
+                                fontSize: 17.5),
                           ),
                         ),
                         //Icon(Icons.keyboard_arrow_right,size: 30.0,color: widget.mainTextColor.withOpacity(0.5),),
                         IconButton(
-                          icon: _isGridView ?
-                          Icon(
-                            Icons.list,
-                            color: widget.mainTextColor,
-                          )
-                              :
-                          Icon(
-                            Icons.dashboard,
-                            color: widget.mainTextColor,
-                          ),
+                          icon: _isGridView
+                              ? Icon(
+                                  Icons.list,
+                                  color: widget.mainTextColor,
+                                )
+                              : Icon(
+                                  Icons.dashboard,
+                                  color: widget.mainTextColor,
+                                ),
                           iconSize: 30.0,
                           onPressed: () {
                             setState(() {
@@ -346,131 +383,155 @@ class _TaskScreenState extends State<TaskScreen> {
                 ],
               ),
             ),
-
             Container(
               height: MediaQuery.of(context).size.height - 300.0,
-              child: _isLoading ?
-              Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.yellow),
-                ),
-              )
-                  : (_isGridView ?
-              GridView.builder(
-                itemCount: _tasksTitles.length,
-                gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-                itemBuilder: (BuildContext context, int index){
-                  final item = _tasksTitles[index];
-                  return Dismissible(
-                    key: Key(item),
-                    onDismissed: (direction){
-                      if(!_isAnySelected){
-                        setState(() {
-                          _removeTask(index);
-                        });
-                      }
-                    },
-                    //background: Container(color: Colors.green,),
-                    child: GestureDetector(
-                      onLongPress: (){
-                        if(!_isAnySelected){
-                          setState(() {
-                            _selectTask(index);
-                          });
-                        }
-                      },
-                      onTap: (){
-                        if(_isAnySelected){
-                          setState(() {
-                            _selectTask(index);
-                          });
-                        }
-                      },
-                      child: Container(
-                        width: MediaQuery.of(context).size.width,
-                        margin: EdgeInsets.all(10.0),
-                        padding: EdgeInsets.all(15.0),
-                        height: 100.0,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15.0),
-                          color: _isSelected.elementAt(index) ? Colors.white : _selectedColor.elementAt(index),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            Text('$item', style: TextStyle(fontSize: 30.0,color: _isSelected.elementAt(index) ? Colors.black : widget.mainTextColor.withOpacity(0.75)),textAlign: TextAlign.center,),
-                            _isAnySelected
-                                ? _isSelected.elementAt(index)
-                                ? Icon(Icons.radio_button_checked)
-                                :Icon(Icons.radio_button_unchecked)
-                                :SizedBox(),
-                          ],
-                        ),
+              child: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Colors.yellow),
                       ),
-                    ),
-                  );
-                },
-              )
-                  :
-              ListView.builder(
-                itemCount: _tasksTitles.length,
-                itemBuilder: (BuildContext context, int index){
-                  final item = _tasksTitles[index];
-                  return Dismissible(
-                    key: Key(item),
-                    onDismissed: (direction){
-                      if(!_isAnySelected){
-                        setState(() {
-                          _removeTask(index);
-                        });
-                      }
-                    },
-                    child: GestureDetector(
-                      onLongPress: (){
-                        if(!_isAnySelected){
-                          setState(() {
-                            _selectTask(index);
-                          });
-                        }
-                      },
-                      onTap: (){
-                        if(_isAnySelected){
-                          setState(() {
-                            _selectTask(index);
-                          });
-                        }
-                      },
-                      child: Container(
-                        width: MediaQuery.of(context).size.width,
-                        margin: EdgeInsets.all(10.0),
-                        padding: EdgeInsets.all(15.0),
-                        height: 100.0,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15.0),
-                          color: _isSelected.elementAt(index) ? Colors.white : _selectedColor.elementAt(index),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            Text('$item', style: TextStyle(fontSize: 30.0,color: _isSelected.elementAt(index) ? Colors.black : widget.mainTextColor.withOpacity(0.75)),textAlign: TextAlign.center,),
-                            _isAnySelected
-                                ? _isSelected.elementAt(index)
-                                ? Icon(Icons.radio_button_checked)
-                                :Icon(Icons.radio_button_unchecked)
-                                :SizedBox(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              )),
+                    )
+                  : (_isGridView
+                      ? GridView.builder(
+                          itemCount: _tasksTitles.length,
+                          gridDelegate:
+                              new SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2),
+                          itemBuilder: (BuildContext context, int index) {
+                            final item = _tasksTitles[index];
+                            return Dismissible(
+                              key: Key(item),
+                              onDismissed: (direction) {
+                                if (!_isAnySelected) {
+                                  setState(() {
+                                    _removeTask(index);
+                                  });
+                                }
+                              },
+                              //background: Container(color: Colors.green,),
+                              child: GestureDetector(
+                                onLongPress: () {
+                                  if (!_isAnySelected) {
+                                    setState(() {
+                                      _selectTask(index);
+                                    });
+                                  }
+                                },
+                                onTap: () {
+                                  if (_isAnySelected) {
+                                    setState(() {
+                                      _selectTask(index);
+                                    });
+                                  }
+                                },
+                                child: Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  margin: EdgeInsets.all(10.0),
+                                  padding: EdgeInsets.all(15.0),
+                                  height: 100.0,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    color: _isSelected.elementAt(index)
+                                        ? Colors.white
+                                        : _selectedColor.elementAt(index),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Text(
+                                        '$item',
+                                        style: TextStyle(
+                                            fontSize: 30.0,
+                                            color: _isSelected.elementAt(index)
+                                                ? Colors.black
+                                                : widget.mainTextColor
+                                                    .withOpacity(0.75)),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      _isAnySelected
+                                          ? _isSelected.elementAt(index)
+                                              ? Icon(Icons.radio_button_checked)
+                                              : Icon(
+                                                  Icons.radio_button_unchecked)
+                                          : SizedBox(),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : ListView.builder(
+                          itemCount: _tasksTitles.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final item = _tasksTitles[index];
+                            return Dismissible(
+                              key: Key(item),
+                              onDismissed: (direction) {
+                                if (!_isAnySelected) {
+                                  setState(() {
+                                    _removeTask(index);
+                                  });
+                                }
+                              },
+                              child: GestureDetector(
+                                onLongPress: () {
+                                  if (!_isAnySelected) {
+                                    setState(() {
+                                      _selectTask(index);
+                                    });
+                                  }
+                                },
+                                onTap: () {
+                                  if (_isAnySelected) {
+                                    setState(() {
+                                      _selectTask(index);
+                                    });
+                                  }
+                                },
+                                child: Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  margin: EdgeInsets.all(10.0),
+                                  padding: EdgeInsets.all(15.0),
+                                  height: 100.0,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                    color: _isSelected.elementAt(index)
+                                        ? Colors.white
+                                        : _selectedColor.elementAt(index),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Text(
+                                        '$item',
+                                        style: TextStyle(
+                                            fontSize: 30.0,
+                                            color: _isSelected.elementAt(index)
+                                                ? Colors.black
+                                                : widget.mainTextColor
+                                                    .withOpacity(0.75)),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      _isAnySelected
+                                          ? _isSelected.elementAt(index)
+                                              ? Icon(Icons.radio_button_checked)
+                                              : Icon(
+                                                  Icons.radio_button_unchecked)
+                                          : SizedBox(),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        )),
             ),
             _buildAddTaskButton(),
-            _isAnySelected ?
-            _buildSelectedOptionsMenu()
-            :
-            _buildDoneButton(),
+            _isAnySelected ? _buildSelectedOptionsMenu() : _buildDoneButton(),
           ],
         ),
       ),
@@ -707,30 +768,37 @@ class _TaskScreenState extends State<TaskScreen> {
             ),
             Container(
               height: MediaQuery.of(context).size.height - 275.0,
-              child: _isLoading ?
-              Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.yellow),
-                ),
-              )
-                  :
-              ListView.builder(
-                itemCount: _doneTasks.length,
-                itemBuilder: (BuildContext context, int index){
-                  final item = _doneTasks[index];
-                  return Container(
-                    width: MediaQuery.of(context).size.width,
-                    margin: EdgeInsets.all(10.0),
-                    padding: EdgeInsets.all(15.0),
-                    height: 100.0,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15.0),
-                      color: _selectTaskColor(),
+              child: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(Colors.yellow),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: _doneTasks.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final item = _doneTasks[index];
+                        return Container(
+                          width: MediaQuery.of(context).size.width,
+                          margin: EdgeInsets.all(10.0),
+                          padding: EdgeInsets.all(15.0),
+                          height: 100.0,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15.0),
+                            color: _selectTaskColor(),
+                          ),
+                          child: Text(
+                            '$item',
+                            style: TextStyle(
+                                fontSize: 30.0,
+                                color: widget.mainTextColor.withOpacity(0.75),
+                                decoration: TextDecoration.lineThrough),
+                            textAlign: TextAlign.center,
+                          ),
+                        );
+                      },
                     ),
-                    child: Text('$item', style: TextStyle(fontSize: 30.0,color: widget.mainTextColor.withOpacity(0.75), decoration: TextDecoration.lineThrough),textAlign: TextAlign.center,),
-                  );
-                },
-              ),
             ),
           ],
         ),
@@ -746,10 +814,8 @@ class _TaskScreenState extends State<TaskScreen> {
     return Scaffold(
       backgroundColor: widget.mainBackgroundColor,
       body: WillPopScope(
-          child: _isMyTaskScreen
-              ? _mainScreens[0]
-              : _mainScreens[1],
-          onWillPop: _writeData,
+        child: _isMyTaskScreen ? _mainScreens[0] : _mainScreens[1],
+        onWillPop: _writeData,
       ),
     );
   }
@@ -762,21 +828,69 @@ class HomeScreenRoute extends CupertinoPageRoute {
 
 class NewTaskScreenRoute extends CupertinoPageRoute {
   NewTaskScreenRoute(
-  Color mainBackgroundColor,
-  Color mainTaskColor,
-  Color mainTextColor,
-  String mainColor,
-  List<String> mainTasksTitlesList,
-  List<String> mainTasksDetailsList,
-  List<bool> isSelectedList,
-  List<Color> selectedColorList)
-      : super(builder: (BuildContext context) => new NewTaskScreen(
-    mainBackgroundColor: mainBackgroundColor,
-    mainTaskColor: mainTaskColor,
-    mainTextColor: mainTextColor,
-    mainColor: mainColor,
-    mainTasksTitlesList: mainTasksTitlesList,
-    mainTasksDetailsList: mainTasksDetailsList,
-    isSelectedList: isSelectedList,
-    selectedColorList: selectedColorList,));
+      Color mainBackgroundColor,
+      Color mainTaskColor,
+      Color mainTextColor,
+      String mainColor,
+      List<String> mainTasksTitlesList,
+      List<String> mainTasksDetailsList,
+      List<bool> isSelectedList,
+      List<Color> selectedColorList)
+      : super(
+            builder: (BuildContext context) => new NewTaskScreen(
+                  mainBackgroundColor: mainBackgroundColor,
+                  mainTaskColor: mainTaskColor,
+                  mainTextColor: mainTextColor,
+                  mainColor: mainColor,
+                  mainTasksTitlesList: mainTasksTitlesList,
+                  mainTasksDetailsList: mainTasksDetailsList,
+                  isSelectedList: isSelectedList,
+                  selectedColorList: selectedColorList,
+                ));
+}
+
+class EditTaskScreenRoute extends CupertinoPageRoute {
+  EditTaskScreenRoute(
+      Color mainBackgroundColor,
+      Color mainTaskColor,
+      Color mainTextColor,
+      String mainColor,
+      int index,
+      List<String> mainTasksTitlesList,
+      List<String> mainTasksDetailsList,)
+      : super(
+      builder: (BuildContext context) => new EditTaskScreen(
+        mainBackgroundColor: mainBackgroundColor,
+        mainTaskColor: mainTaskColor,
+        mainTextColor: mainTextColor,
+        mainColor: mainColor,
+        index: index,
+        mainTasksTitlesList: mainTasksTitlesList,
+        mainTasksDetailsList: mainTasksDetailsList,
+      ));
+}
+
+Route doneTaskScreenRoute(Color mainBackgroundColor, Color mainTextColor,
+    String mainColor, Color mainTaskColor, List<String> mainDoneTasksList) {
+  return PageRouteBuilder(
+    pageBuilder: (context, animation, secondaryAnimation) => DoneTaskScreen(
+      mainBackgroundColor: mainBackgroundColor,
+      mainColor: mainColor,
+      mainTextColor: mainTextColor,
+      mainTaskColor: mainTaskColor,
+      mainDoneTasksList: mainDoneTasksList,
+    ),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      var begin = Offset(0.0, 1.0);
+      var end = Offset.zero;
+      var curve = Curves.ease;
+
+      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+      return SlideTransition(
+        position: animation.drive(tween),
+        child: child,
+      );
+    },
+  );
 }

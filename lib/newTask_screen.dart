@@ -37,6 +37,9 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
 
   bool _isDayChosen;
   bool _isCodeScanned;
+  bool _isChooseDayScreen;
+
+  String _selectedDay;
 
   @override
   void initState() {
@@ -45,6 +48,8 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     //SystemChrome.setEnabledSystemUIOverlays([]);
     _isCodeScanned = false;
     _isDayChosen = false;
+    _isChooseDayScreen = false;
+    _selectedDay = "Tab to choose a day";
   }
 
   void _addTask() {
@@ -68,6 +73,287 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     prefs.setStringList("Details", widget.mainTasksTitlesList);
   }
 
+  Widget _buildDayComponent(String day) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width,
+        height: 80.0,
+        child: Material(
+          borderRadius: BorderRadius.circular(15.0),
+          color: widget.mainTaskColor,
+          child: OutlineButton(
+            shape: RoundedRectangleBorder(
+                borderRadius:
+                BorderRadius.all(Radius.circular(15.0))),
+            borderSide: BorderSide(
+              color: widget.mainTaskColor,
+            ),
+            onPressed: () {
+              setState(() {
+                _selectedDay = day;
+                _isDayChosen = true;
+                _isChooseDayScreen = false;
+              });
+            },
+            child: Text(
+              day,
+              style: TextStyle(
+                  fontSize: 25.0,
+                  color:
+                  widget.mainTextColor),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildChooseDayComponent() {
+    return SafeArea(
+      child: Stack(
+        children: <Widget>[
+          Container(
+            alignment: Alignment.topCenter,
+            margin: EdgeInsets.fromLTRB(15.0, 25.0, 15.0, 15.0),
+            width: MediaQuery.of(context).size.width,
+            height: 75.0,
+            child: Text(
+              "Choose Day",
+              style: TextStyle(fontSize: 25.0, color: widget.mainTextColor),
+            ),
+          ),
+          SizedBox(
+            height: 15.0,
+          ),
+          Container(
+            margin: EdgeInsets.fromLTRB(0.0, 75.0, 0.0, 0.0),
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            alignment: Alignment.topLeft,
+            padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
+            child: SingleChildScrollView(
+              child: Column(
+                children: <Widget>[
+                  _buildDayComponent("Saturday"),
+                  _buildDayComponent("Sunday"),
+                  _buildDayComponent("Monday"),
+                  _buildDayComponent("Tuesday"),
+                  _buildDayComponent("Wednesday"),
+                  _buildDayComponent("Thursday"),
+                  _buildDayComponent("Friday"),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNewTaskComponents() {
+    return SafeArea(
+      child: Stack(
+        children: <Widget>[
+          Container(
+            alignment: Alignment.topLeft,
+            margin: EdgeInsets.all(15.0),
+            width: MediaQuery.of(context).size.width,
+            height: 75.0,
+            child: FlatButton.icon(
+              onPressed: () {
+                _saveData();
+                Navigator.pop(context);
+              },
+              icon: Icon(
+                Icons.keyboard_arrow_left,
+                size: 35.0,
+                color: widget.mainTextColor,
+              ),
+              label: Text(
+                "Add New",
+                style: TextStyle(fontSize: 20.0, color: widget.mainTextColor),
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 15.0,
+          ),
+          Container(
+            margin: EdgeInsets.fromLTRB(0.0, 75.0, 0.0, 0.0),
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            alignment: Alignment.topLeft,
+            padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
+            child: SingleChildScrollView(
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          "Task Name",
+                          style: TextStyle(fontSize: 17.5),
+                        ),
+                        SizedBox(
+                          height: 7.5,
+                        ),
+                        Container(
+                          padding: EdgeInsets.all(5.0),
+                          height: 80.0,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15.0),
+                            color: widget.mainTaskColor,
+                          ),
+                          width: MediaQuery.of(context).size.width,
+                          child: TextField(
+                            controller: _taskTitle,
+                            minLines: 1,
+                            maxLines: null,
+                            decoration: InputDecoration(
+                              hintText: "Example: Take the medicine",
+                              hintStyle: TextStyle(
+                                  color: widget.mainTextColor.withOpacity(0.5)),
+                              enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                  borderSide: BorderSide(
+                                      color: widget.mainTaskColor, width: 1.0)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 25.0,
+                  ),
+                  Container(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          "Description",
+                          style: TextStyle(fontSize: 17.5),
+                        ),
+                        SizedBox(
+                          height: 7.5,
+                        ),
+                        Container(
+                          padding: EdgeInsets.all(5.0),
+                          height: 150.0,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15.0),
+                            color: widget.mainTaskColor,
+                          ),
+                          child: TextField(
+                            controller: _taskDescription,
+                            minLines: 1,
+                            maxLines: null,
+                            decoration: InputDecoration(
+                              hintText:
+                              "I should eat before medicine, don't have to wait after eating.",
+                              hintStyle: TextStyle(
+                                  color: widget.mainTextColor.withOpacity(0.5)),
+                              enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                  borderSide: BorderSide(
+                                      color: widget.mainTaskColor, width: 1.0)),
+                              //icon: Icon(Icons.email)
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 25.0,
+                  ),
+                  Container(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          "Task Day",
+                          style: TextStyle(fontSize: 17.5),
+                        ),
+                        Container(
+                          margin: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width,
+                            height: 80.0,
+                            child: Material(
+                              borderRadius: BorderRadius.circular(15.0),
+                              color: widget.mainTaskColor,
+                              child: OutlineButton(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius:
+                                    BorderRadius.all(Radius.circular(15.0))),
+                                borderSide: BorderSide(
+                                  color: widget.mainTaskColor,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isChooseDayScreen = true;
+                                  });
+                                },
+                                child: Text(
+                                  _selectedDay,
+                                  style: TextStyle(
+                                      fontSize: 25.0,
+                                      color:
+                                      widget.mainTextColor.withOpacity(0.5)),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 25.0,
+                  ),
+                  Container(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text("Task Code", style: TextStyle(fontSize: 17.5),),
+                            Text("Tab to scan the QR code", style: TextStyle(fontSize: 16.0,color: widget.mainTextColor.withOpacity(0.5)),)
+                          ],
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.filter_center_focus,size: 35.0,color: widget.mainTextColor,),
+                          onPressed: (){
+                            setState(() {
+                              _isCodeScanned = true;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 50.0,
+                  ),
+                  Container(
+                    child: FlatButton(
+                      onPressed: (_isDayChosen && _isCodeScanned) ? ((){setState(() {_addTask();});}) : null,
+                      child: Text("Add the task +", style: TextStyle(fontSize: 25.0,color: widget.mainTextColor.withOpacity(0.5)),),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -78,205 +364,10 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
           FocusScope.of(context).requestFocus(new FocusNode());
           SystemChannels.textInput.invokeMethod('TextInput.hide');
         },
-        child: SafeArea(
-            child: Stack(
-              children: <Widget>[
-                Container(
-                  alignment: Alignment.topLeft,
-                  margin: EdgeInsets.all(15.0),
-                  width: MediaQuery.of(context).size.width,
-                  height: 75.0,
-                  child: FlatButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: Icon(
-                      Icons.keyboard_arrow_left,
-                      size: 35.0,
-                      color: widget.mainTextColor,
-                    ),
-                    label: Text(
-                      "Add New",
-                      style: TextStyle(fontSize: 20.0, color: widget.mainTextColor),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  height: 15.0,
-                ),
-                Container(
-                  margin: EdgeInsets.fromLTRB(0.0, 75.0, 0.0, 0.0),
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  alignment: Alignment.topLeft,
-                  padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                "Task Name",
-                                style: TextStyle(fontSize: 17.5),
-                              ),
-                              SizedBox(
-                                height: 7.5,
-                              ),
-                              Container(
-                                padding: EdgeInsets.all(5.0),
-                                height: 80.0,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                  color: widget.mainTaskColor,
-                                ),
-                                width: MediaQuery.of(context).size.width,
-                                child: TextField(
-                                  controller: _taskTitle,
-                                  minLines: 1,
-                                  maxLines: null,
-                                  decoration: InputDecoration(
-                                    hintText: "Example: Take the medicine",
-                                    hintStyle: TextStyle(
-                                        color: widget.mainTextColor.withOpacity(0.5)),
-                                    enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(15.0),
-                                        borderSide: BorderSide(
-                                            color: widget.mainTaskColor, width: 1.0)),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: 25.0,
-                        ),
-                        Container(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                "Description",
-                                style: TextStyle(fontSize: 17.5),
-                              ),
-                              SizedBox(
-                                height: 7.5,
-                              ),
-                              Container(
-                                padding: EdgeInsets.all(5.0),
-                                height: 150.0,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                  color: widget.mainTaskColor,
-                                ),
-                                child: TextField(
-                                  controller: _taskDescription,
-                                  minLines: 1,
-                                  maxLines: null,
-                                  decoration: InputDecoration(
-                                    hintText:
-                                    "I should eat before medicine, don't have to wait after eating.",
-                                    hintStyle: TextStyle(
-                                        color: widget.mainTextColor.withOpacity(0.5)),
-                                    enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(15.0),
-                                        borderSide: BorderSide(
-                                            color: widget.mainTaskColor, width: 1.0)),
-                                    //icon: Icon(Icons.email)
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: 25.0,
-                        ),
-                        Container(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                "Task Day",
-                                style: TextStyle(fontSize: 17.5),
-                              ),
-                              Container(
-                                margin: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 10.0),
-                                child: SizedBox(
-                                  width: MediaQuery.of(context).size.width,
-                                  height: 80.0,
-                                  child: Material(
-                                    borderRadius: BorderRadius.circular(15.0),
-                                    color: widget.mainTaskColor,
-                                    child: OutlineButton(
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                          BorderRadius.all(Radius.circular(15.0))),
-                                      borderSide: BorderSide(
-                                        color: widget.mainTaskColor,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _isDayChosen = true;
-                                        });
-                                      },
-                                      child: Text(
-                                        "Tab to choose a day",
-                                        style: TextStyle(
-                                            fontSize: 25.0,
-                                            color:
-                                            widget.mainTextColor.withOpacity(0.5)),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: 25.0,
-                        ),
-                        Container(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text("Task Code", style: TextStyle(fontSize: 17.5),),
-                                  Text("Tab to scan the QR code", style: TextStyle(fontSize: 16.0,color: widget.mainTextColor.withOpacity(0.5)),)
-                                ],
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.filter_center_focus,size: 35.0,color: widget.mainTextColor,),
-                                onPressed: (){
-                                  setState(() {
-                                    _isCodeScanned = true;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(
-                          height: 50.0,
-                        ),
-                        Container(
-                          child: FlatButton(
-                            onPressed: (_isDayChosen && _isCodeScanned) ? ((){setState(() {_addTask();});}) : null,
-                            child: Text("Add the task +", style: TextStyle(fontSize: 25.0,color: widget.mainTextColor.withOpacity(0.5)),),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-        ),
+        child: _isChooseDayScreen ?
+        _buildChooseDayComponent()
+            :
+        _buildNewTaskComponents(),
       ),
     );
   }
