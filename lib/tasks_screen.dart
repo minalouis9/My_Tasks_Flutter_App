@@ -27,6 +27,7 @@ class _TaskScreenState extends State<TaskScreen> {
   List<String> _tasksTitles;
   List<String> _tasksDetails;
   List<String> _doneTasks;
+  List<String> _tasksDays;
   List<bool> _isSelected = [];
   List<Color> _selectedColor = [];
 
@@ -52,6 +53,7 @@ class _TaskScreenState extends State<TaskScreen> {
     final prefs = await SharedPreferences.getInstance();
     prefs.setStringList("Titles", _tasksTitles);
     prefs.setStringList("Details", _tasksDetails);
+    prefs.setStringList("Day", _tasksDays);
     prefs.setStringList("Done", _doneTasks);
     return true;
   }
@@ -70,6 +72,10 @@ class _TaskScreenState extends State<TaskScreen> {
       _doneTasks = prefs.getStringList("Done");
       if (_doneTasks == null) {
         _doneTasks = [];
+      }
+      _tasksDays = prefs.getStringList("Day");
+      if(_tasksDays == null){
+        _tasksDays = [];
       }
       if (_tasksTitles.isNotEmpty) {
         for (var task in _tasksTitles) {
@@ -126,6 +132,7 @@ class _TaskScreenState extends State<TaskScreen> {
     _tasksTitles.removeAt(index);
     _tasksDetails.removeAt(index);
     _isSelected.removeAt(index);
+    _tasksDays.removeAt(index);
     _selectedColor.removeAt(index);
   }
 
@@ -203,6 +210,7 @@ class _TaskScreenState extends State<TaskScreen> {
                             widget.mainColor,
                             _tasksTitles,
                             _tasksDetails,
+                            _tasksDays,
                             _isSelected,
                             _selectedColor));
                   },
@@ -226,14 +234,19 @@ class _TaskScreenState extends State<TaskScreen> {
           ? FlatButton(
               onPressed: (){
                 setState(() {
-                  for(int index = 0; index < _isSelected.length; ++index){
+                  for(int index = 0; index < _isSelected.length;){
                     if(_isSelected.elementAt(index) == true){
                       _tasksTitles.removeAt(index);
                       _tasksDetails.removeAt(index);
                       _selectedColor.removeAt(index);
                       _isSelected.removeAt(index);
+                      _tasksDays.removeAt(index);
+                    }else{
+                      index++;
                     }
                   }
+                  _isAnySelected = false;
+                  _isMultipleSelected = false;
                 });
               },
               child: Text(
@@ -250,7 +263,7 @@ class _TaskScreenState extends State<TaskScreen> {
                     onPressed: () {
                       for(int index = 0; index < _isSelected.length; ++index){
                         if(_isSelected.elementAt(index) == true){
-                          Navigator.of(context).push(EditTaskScreenRoute(widget.mainBackgroundColor, _selectTaskColor(), widget.mainTextColor, widget.mainColor, index, _tasksTitles, _tasksDetails));
+                          Navigator.of(context).push(EditTaskScreenRoute(widget.mainBackgroundColor, _selectTaskColor(), widget.mainTextColor, widget.mainColor, index, _tasksTitles, _tasksDetails,_tasksDays));
                         }
                       }
                     },
@@ -264,14 +277,19 @@ class _TaskScreenState extends State<TaskScreen> {
                   FlatButton(
                     onPressed: (){
                       setState(() {
-                        for(int index = 0; index < _isSelected.length; ++index){
+                        for(int index = 0; index < _isSelected.length;){
                           if(_isSelected.elementAt(index) == true){
                             _tasksTitles.removeAt(index);
                             _tasksDetails.removeAt(index);
                             _selectedColor.removeAt(index);
                             _isSelected.removeAt(index);
+                            _tasksDays.removeAt(index);
+                          }else{
+                            index++;
                           }
                         }
+                        _isAnySelected = false;
+                        _isMultipleSelected = false;
                       });
                     },
                     child: Text(
@@ -834,6 +852,7 @@ class NewTaskScreenRoute extends CupertinoPageRoute {
       String mainColor,
       List<String> mainTasksTitlesList,
       List<String> mainTasksDetailsList,
+      List<String> mainTasksDaysList,
       List<bool> isSelectedList,
       List<Color> selectedColorList)
       : super(
@@ -844,6 +863,7 @@ class NewTaskScreenRoute extends CupertinoPageRoute {
                   mainColor: mainColor,
                   mainTasksTitlesList: mainTasksTitlesList,
                   mainTasksDetailsList: mainTasksDetailsList,
+                  mainTasksDaysList: mainTasksDaysList,
                   isSelectedList: isSelectedList,
                   selectedColorList: selectedColorList,
                 ));
@@ -857,7 +877,8 @@ class EditTaskScreenRoute extends CupertinoPageRoute {
       String mainColor,
       int index,
       List<String> mainTasksTitlesList,
-      List<String> mainTasksDetailsList,)
+      List<String> mainTasksDetailsList,
+          List<String> mainTasksDaysList,)
       : super(
       builder: (BuildContext context) => new EditTaskScreen(
         mainBackgroundColor: mainBackgroundColor,
@@ -867,6 +888,7 @@ class EditTaskScreenRoute extends CupertinoPageRoute {
         index: index,
         mainTasksTitlesList: mainTasksTitlesList,
         mainTasksDetailsList: mainTasksDetailsList,
+        mainTasksDaysList: mainTasksDaysList,
       ));
 }
 

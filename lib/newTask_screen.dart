@@ -11,6 +11,7 @@ class NewTaskScreen extends StatefulWidget {
   final String mainColor;
   final List<String> mainTasksTitlesList;
   final List<String> mainTasksDetailsList;
+  final List<String> mainTasksDaysList;
   final List<bool> isSelectedList;
   final List<Color> selectedColorList;
 
@@ -22,6 +23,7 @@ class NewTaskScreen extends StatefulWidget {
         this.mainTaskColor,
         this.mainTasksTitlesList,
         this.mainTasksDetailsList,
+        this.mainTasksDaysList,
         this.isSelectedList,
         this.selectedColorList,
         })
@@ -58,6 +60,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     widget.isSelectedList.insert(index, false);
     widget.selectedColorList.insert(index, _taskColor);
     widget.mainTasksTitlesList.insert(index, _taskTitle.text);
+    widget.mainTasksDaysList.insert(index, _selectedDay);
     if(_taskDescription.toString()!= null || _taskDescription.toString() != "") {
       widget.mainTasksDetailsList.insert(index, _taskDescription.text);
     }
@@ -71,6 +74,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     final prefs = await SharedPreferences.getInstance();
     prefs.setStringList("Titles", widget.mainTasksTitlesList);
     prefs.setStringList("Details", widget.mainTasksTitlesList);
+    prefs.setStringList("Day", widget.mainTasksDaysList);
   }
 
   Widget _buildDayComponent(String day) {
