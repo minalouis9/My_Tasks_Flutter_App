@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
@@ -22,33 +24,63 @@ class TaskScreen extends StatefulWidget {
 
 class _TaskScreenState extends State<TaskScreen> {
 
-  List<String> _tasksTitles = [];
-  List<String> _tasksDetails = [];
-  List<String> _doneTasks = [];
+  List<String> _tasksTitles;
+  List<String> _tasksDetails;
+  List<String> _doneTasks;
   List<bool> _isSelected = [];
   List<Color> _selectedColor = [];
 
   bool _isAnySelected;
   bool _isMyTaskScreen;
   bool _isGridView;
+  bool _isLoading;
   bool _isMultipleSelected;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    SystemChrome.setEnabledSystemUIOverlays([]);
+    //SystemChrome.setEnabledSystemUIOverlays([]);
     _isMyTaskScreen = true;
     _isGridView = false;
     _isAnySelected = false;
     _isMultipleSelected = false;
+    _isLoading = true;
+    _loadData();
   }
 
-  /*void loadData() async {
+  Future<bool> _writeData() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setStringList("Titles", widget.mainTasksTitlesList);
-    prefs.setStringList("Details", widget.mainTasksTitlesList);
-  }*/
+    prefs.setStringList("Titles", _tasksTitles);
+    prefs.setStringList("Details", _tasksDetails);
+    prefs.setStringList("Done", _doneTasks);
+    return true;
+  }
+
+  void _loadData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _tasksTitles = prefs.getStringList("Titles");
+      if(_tasksTitles == null){
+        _tasksTitles = [];
+      }
+      _tasksDetails = prefs.getStringList("Details");
+      if(_tasksDetails == null){
+        _tasksDetails = [];
+      }
+      _doneTasks = prefs.getStringList("Done");
+      if(_doneTasks == null){
+        _doneTasks = [];
+      }
+      if(_tasksTitles.isNotEmpty){
+        for(var task in _tasksTitles){
+          _isSelected.add(false);
+          _selectedColor.add(_selectTaskColor());
+        }
+      }
+      _isLoading = false;
+    });
+  }
 
   Color _selectTaskColor() {
     switch (widget.mainColor) {
@@ -259,7 +291,7 @@ class _TaskScreenState extends State<TaskScreen> {
         width: MediaQuery.of(context).size.width,
         height: MediaQuery.of(context).size.height,
         alignment: Alignment.centerLeft,
-        padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
+        padding: EdgeInsets.fromLTRB(15.0, 0.0, 15.0, 10.0),
         child: Column(
           children: <Widget>[
             Container(
@@ -314,10 +346,17 @@ class _TaskScreenState extends State<TaskScreen> {
                 ],
               ),
             ),
+
             Container(
-              height: MediaQuery.of(context).size.height - 275.0,
-              child: _isGridView
-                  ? GridView.builder(
+              height: MediaQuery.of(context).size.height - 300.0,
+              child: _isLoading ?
+              Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.yellow),
+                ),
+              )
+                  : (_isGridView ?
+              GridView.builder(
                 itemCount: _tasksTitles.length,
                 gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
                 itemBuilder: (BuildContext context, int index){
@@ -370,9 +409,10 @@ class _TaskScreenState extends State<TaskScreen> {
                       ),
                     ),
                   );
-                  },
+                },
               )
-                  : ListView.builder(
+                  :
+              ListView.builder(
                 itemCount: _tasksTitles.length,
                 itemBuilder: (BuildContext context, int index){
                   final item = _tasksTitles[index];
@@ -423,8 +463,8 @@ class _TaskScreenState extends State<TaskScreen> {
                       ),
                     ),
                   );
-                  },
-              ),
+                },
+              )),
             ),
             _buildAddTaskButton(),
             _isAnySelected ?
@@ -667,7 +707,14 @@ class _TaskScreenState extends State<TaskScreen> {
             ),
             Container(
               height: MediaQuery.of(context).size.height - 275.0,
-              child: ListView.builder(
+              child: _isLoading ?
+              Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.yellow),
+                ),
+              )
+                  :
+              ListView.builder(
                 itemCount: _doneTasks.length,
                 itemBuilder: (BuildContext context, int index){
                   final item = _doneTasks[index];
@@ -677,10 +724,10 @@ class _TaskScreenState extends State<TaskScreen> {
                     padding: EdgeInsets.all(15.0),
                     height: 100.0,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15.0), 
+                      borderRadius: BorderRadius.circular(15.0),
                       color: _selectTaskColor(),
                     ),
-                    child: Text('$item', style: TextStyle(fontSize: 30.0,color: widget.mainTextColor.withOpacity(0.75)),textAlign: TextAlign.center,),
+                    child: Text('$item', style: TextStyle(fontSize: 30.0,color: widget.mainTextColor.withOpacity(0.75), decoration: TextDecoration.lineThrough),textAlign: TextAlign.center,),
                   );
                 },
               ),
@@ -698,9 +745,12 @@ class _TaskScreenState extends State<TaskScreen> {
     // TODO: implement build
     return Scaffold(
       backgroundColor: widget.mainBackgroundColor,
-      body: _isMyTaskScreen
-          ? _mainScreens[0]
-          : _mainScreens[1],
+      body: WillPopScope(
+          child: _isMyTaskScreen
+              ? _mainScreens[0]
+              : _mainScreens[1],
+          onWillPop: _writeData,
+      ),
     );
   }
 }
